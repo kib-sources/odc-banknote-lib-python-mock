@@ -22,9 +22,7 @@ import uuid
 
 from dataclasses import dataclass
 
-from .types import HASH
-from .types import SIGN
-from .types import KEY
+from types_ import HASH, SIGN, KEY
 
 ODCB_FILE_PREFIX = "ODC banknote........"
 ODCB_FILE_VERSION = "v2-py-mock"
@@ -36,6 +34,7 @@ assert len(ODCB_FILE_VERSION) == 10
 # Далее префикса и версии мы можем НЕ придерживаться ODC v2 протокола *.odbc банкнот.
 # Версия "v2-py-mock" указывает что это замоченная версия.
 
+from common import make_hash
 
 
 @dataclass
@@ -61,16 +60,30 @@ class OdcbBlockHeader:
     salt: str # = _some_salt
 
     #  hash = hash(bank_id, ..., sign_algorithm, hash_algorithm, salt)
-    hash_: HASH = ""
+    hash_: HASH = bytes()
 
     bank_sign: SIGN = ""
 
-    def _calc_hash(self):
-        raise NotImplementedError()
+    def calc_hash(self):
+        return make_hash(
+            "SHA-512.............",
+            self.bank_id,
+            self.banknote_id,
+            self.bok,
+            self.code,
+            self.amount,
+            self.applicability,
+            self.count_append_applicability_blocks,
+            self.sign_algorithm,
+            self.hash_algorithm,
+            self.salt,
+        )
 
-    def _check_hash(self):
-        raise NotImplementedError()
-
+    def check_hash(self):
+        if self.hash_ == self.calc_hash():
+            return True
+        else:
+            return False
 
 
 @dataclass

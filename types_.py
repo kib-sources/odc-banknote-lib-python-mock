@@ -19,11 +19,11 @@ __status__ = "Production"
 
 import uuid
 
-HASH = str
+HASH = bytes
 
 SIGN = bytes
 
-KEY = bytes
+KEY = str
 
 # WID - wallet id
 WID = uuid.UUID

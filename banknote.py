@@ -30,11 +30,11 @@ from dataclasses import dataclass
 from typing import List, Optional
 import dill
 
-from .types import KEY
-from .banknote_blocks import OdcbBlockChain, OdcbBlockHeader, OdcbBlockApplicability
-from .banknote_blocks import ODCB_FILE_PREFIX, ODCB_FILE_VERSION
+from types_ import KEY
+from banknote_blocks import OdcbBlockChain, OdcbBlockHeader, OdcbBlockApplicability
+from banknote_blocks import ODCB_FILE_PREFIX, ODCB_FILE_VERSION
 
-from .common import make_salt
+from bank import Bank
 
 _odcb_mock_version = "2.0-python-mock"
 
@@ -61,51 +61,53 @@ class OdcBanknote:
     # self._chain
 
     def __init__(
-            self,
-            bank_id: str,
-            banknote_id: uuid.UUID,
-            bok: KEY,
+        self,
+        header: OdcbBlockHeader,
+        chain: Optional[List[OdcbBlockChain]] = None,
+    ):
+        if chain is None:
+            chain = list()
+        self._header = header
+        self._chain = chain
+
+    @classmethod
+    def make(
+            cls,
+            *,
+            bank: Bank,
             code: str,
             amount: int,
-            applicabilities: Optional[List[str]]
+            banknote_id: Optional[uuid.UUID]=None,
+            applicabilities: Optional[List[str]]=None,
     ):
         if applicabilities is None:
             applicabilities = [
                 "ALL-0000-0000000"
             ]
 
-        self._header = OdcbBlockHeader(
-            bank_id=bank_id,
+        if len(applicabilities) > 1:
+            raise NotImplementedError("Пока не поддерживаем много блоков APPLICABILITIES... :( Укажите один")
+
+        header = bank.init_odcb_block_header(
             banknote_id=banknote_id,
-            bok=bok,
-            applicability=applicabilities[0],
+            code=code,
+            amount=amount,
+            first_applicability=applicabilities[0],
             count_append_applicability_blocks=len(applicabilities)-1,
-            sign_algorithm="RSA-4096............",
-            hash_algorithm="SHA-512.............",
-            salt=make_salt(),
         )
 
+        _obj = cls(
+            header=header,
+            chain=list()
+        )
 
-        if len(applicabilities)>0:
-            for applicability in applicabilities[1:]:
-                self.applicability_list = OdcbBlockApplicability(
-                    bank_id=bank_id,
-                    banknote_id=banknote_id,
-                    applicability=applicability,
-                    salt="",
-                    hash="",
-                    bank_sign="",
-                )
-
-        self._chain = list()
-
-        pass
+        return _obj
 
     @classmethod
     def load(cls, path):
         assert path.endswith(".odcb")
         with open(path, "rb") as fr:
-            file_data = dill.load(fr)
+            file_data = fr.read()
             odbc_file_prefix = file_data[0:len(ODCB_FILE_PREFIX)]
             assert odbc_file_prefix == ODCB_FILE_PREFIX.encode('ascii')
 
@@ -127,3 +129,13 @@ class OdcBanknote:
 
             fw.write(file_data)
 
+
+    def __eq__(self, other):
+        if not isinstance(other, OdcBanknote):
+            return False
+
+        if self._header.bank_id != other._header.bank_id:
+            return False
+        if self._header.banknote_id != other._header.banknote_id:
+            return False
+        return True

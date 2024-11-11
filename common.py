@@ -18,10 +18,87 @@ __version__ = "20241031"
 __status__ = "Production"
 
 
-from random import random
+import random
+import uuid
+from typing import Optional
+
+from Crypto.Hash import SHA512
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+
+from types_ import SIGN, HASH, KEY
+
+
+# def import_key(str_key: str) -> KEY:
 
 
 
+def to_odcb_bytes(some):
+    if isinstance(some, bytes):
+        return some
+    if isinstance(some, str):
+        return some.encode('ascii')
+    if isinstance(some, int):
+        return some.to_bytes(length=8, byteorder='big')
+    if isinstance(some, uuid.UUID):
+        return str(some).encode('ascii')
+
+    raise NotImplementedError(f"Не реализована функция {to_odcb_bytes.__name__} для типа {type(some)}")
 
 def make_salt():
-    return random.getrandbits(64).to_bytes().hex()
+    # return random.getrandbits(64).to_bytes().hex()
+
+    RANDOM_ALPHABET = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'
+
+    return ''.join(random.sample(RANDOM_ALPHABET, 32))
+
+
+def make_hash(hash_algorithm:str, *args) -> HASH:
+    # В python всё можно привести к строке и это удобно.
+    # Однако в Си коде хеш будем брать от последовательности байт.
+    # Поэтому переводим всё в байты
+
+    assert hash_algorithm == "SHA-512............."
+
+
+    bytes_data = b''.join([
+        to_odcb_bytes(arg)
+        for arg in args
+    ])
+
+    h = SHA512.new()
+    h.update(bytes_data)
+    hash_ = h.digest()
+    return hash_
+
+
+def check_sign(
+    sign_algorithm: str,
+    hash_: HASH,
+    sign: SIGN,
+    public_key: KEY,
+) -> bool:
+    assert sign_algorithm == "RSA-4096............"
+
+    key = RSA.importKey(public_key)
+    verifier = PKCS1_v1_5.new(key)
+    hash_object = SHA512.new(data=hash_)
+    verified = verifier.verify(hash_object, sign)
+    return verified
+
+
+def make_sign(
+    sign_algorithm: str,
+    hash_: HASH,
+    private_key: KEY,
+    # public_key: Optional[KEY] = None,
+) -> SIGN:
+
+    assert sign_algorithm == "RSA-4096............"
+
+    key = RSA.importKey(private_key)
+    signer = PKCS1_v1_5.new(key)
+    hash_object = SHA512.new(data=hash_)
+    sign = signer.sign(hash_object)
+
+    return sign
