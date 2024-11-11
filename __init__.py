@@ -28,13 +28,16 @@ import os
 import uuid
 from dataclasses import dataclass
 from typing import List, Optional
+import dill
 
 from .types import KEY
 from .banknote_blocks import OdcbBlockChain, OdcbBlockHeader, OdcbBlockApplicability
+from .banknote_blocks import ODCB_FILE_PREFIX, ODCB_FILE_VERSION
 
 from .common import make_salt
 
 _odcb_mock_version = "2.0-python-mock"
+
 
 def lib_version():
     # return "2024.10"
@@ -54,6 +57,9 @@ class OdcBanknote:
     Вернее его Mock, конечно...
     """
 
+    # self._header
+    # self._chain
+
     def __init__(
             self,
             bank_id: str,
@@ -68,7 +74,7 @@ class OdcBanknote:
                 "ALL-0000-0000000"
             ]
 
-        self.header = OdcbBlockHeader(
+        self._header = OdcbBlockHeader(
             bank_id=bank_id,
             banknote_id=banknote_id,
             bok=bok,
@@ -79,7 +85,6 @@ class OdcBanknote:
             salt=make_salt(),
         )
 
-        raise NotImplementedError("Нужно дописать вычисление hash")
 
         if len(applicabilities)>0:
             for applicability in applicabilities[1:]:
@@ -87,18 +92,38 @@ class OdcBanknote:
                     bank_id=bank_id,
                     banknote_id=banknote_id,
                     applicability=applicability,
+                    salt="",
+                    hash="",
+                    bank_sign="",
                 )
-        self.chain = list()
+
+        self._chain = list()
 
         pass
 
     @classmethod
     def load(cls, path):
         assert path.endswith(".odcb")
-        return OdcBanknote()
+        with open(path, "rb") as fr:
+            file_data = dill.load(fr)
+            odbc_file_prefix = file_data[0:len(ODCB_FILE_PREFIX)]
+            assert odbc_file_prefix == ODCB_FILE_PREFIX.encode('ascii')
+
+            odbc_file_version = file_data[len(ODCB_FILE_PREFIX):len(ODCB_FILE_PREFIX)+len(ODCB_FILE_VERSION)]
+            assert odbc_file_version == ODCB_FILE_VERSION.encode('ascii')
+
+            banknote_data = file_data[len(ODCB_FILE_PREFIX)+len(ODCB_FILE_VERSION):]
+            _obj = dill.loads(banknote_data)
+            assert isinstance(_obj, OdcBanknote)
+
+            return _obj
 
     def save(self, path):
         assert path.endswith(".odcb")
-        with open(path, "w") as odcb:
-            pass
+        with open(path, "wb") as fw:
+            banknote_data = dill.dumps(self)
+
+            file_data = ODCB_FILE_PREFIX.encode('ascii') + ODCB_FILE_VERSION.encode('ascii') + banknote_data
+
+            fw.write(file_data)
 
