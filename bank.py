@@ -118,3 +118,10 @@ class Bank():
         )
 
         return header
+
+
+    def init_smart_card(self):
+        """
+        Инициирование новой смарт-карты
+        :return:
+        """

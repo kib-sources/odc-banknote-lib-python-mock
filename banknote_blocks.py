@@ -16,6 +16,7 @@ __credits__ = [
 __version__ = "20241030"
 __status__ = "Develop"
 
+import enum
 import random
 import uuid
 # __status__ = "Production"
@@ -117,17 +118,83 @@ class OdcbBlockChain:
     counter: int
 
     salt0: str
-    hash0: HASH
-    hash0_by_spk_owner: SIGN
+    hash0: HASH = ""
+    hash0_by_spk_owner: SIGN = bytes()
 
-    salt: str
-    hash: HASH
-    hash_by_spk_or_bpk_previous_owner: SIGN
+    salt: str = ""
+    hash_: HASH = bytes()
+    hash_by_spk_or_bpk_previous_owner: SIGN = bytes()
+
+    def calc_hash0(self, hash_algorithm="SHA-512............."):
+        return make_hash(
+            hash_algorithm,
+            self.bank_id,
+            self.banknote_id,
+            self.parent_hash,
+            self.sok_owner_by_bpk,
+            self.counter,
+            self.salt0,
+        )
+
+    def check_hash0(self, hash_algorithm="SHA-512............."):
+        if self.hash0 == self.calc_hash0(hash_algorithm=hash_algorithm):
+            return True
+        else:
+            return False
+
+
+    def calc_hash(self, hash_algorithm="SHA-512............."):
+        return make_hash(
+            hash_algorithm,
+            self.bank_id,
+            self.banknote_id,
+            self.parent_hash,
+            self.sok_owner_by_bpk,
+            self.counter,
+            self.salt0,
+            # ----
+            self.hash0,
+            self.hash0_by_spk_owner,
+            # ----
+            self.salt,
+        )
+
+    def check_hash(self,  hash_algorithm="SHA-512............."):
+        if self.hash_ == self.calc_hash(hash_algorithm=hash_algorithm):
+            return True
+        else:
+            return False
+
 
     # --------------
     # опциональные поля, при online, а не offline передаче
-    salt_bank: str
-    hash_bank: HASH
-    hash_bank_by_bpk: SIGN
+    # ВАЖНО: salt, hash, hash_by_spk_or_bpk_previous_owner в подпись НЕ попадают.
+    #  Это нужно чтобы была возможность подписать банком как до передачи банкноты, так и после неё.
+    salt_bank: str = ""
+    hash_bank: HASH = bytes()
+    hash_bank_by_bpk: SIGN = bytes()
+
+
+    def calc_hash_bank(self, hash_algorithm="SHA-512............."):
+        return make_hash(
+            hash_algorithm,
+            self.bank_id,
+            self.banknote_id,
+            self.parent_hash,
+            self.sok_owner_by_bpk,
+            self.counter,
+            self.salt0,
+            # ----
+            self.hash0,
+            self.hash0_by_spk_owner,
+            # ----
+            self.salt_bank
+        )
+
+    def check_hash_bank(self,  hash_algorithm="SHA-512............."):
+        if self.hash_bank == self.calc_hash_bank(hash_algorithm=hash_algorithm):
+            return True
+        else:
+            return False
 
 

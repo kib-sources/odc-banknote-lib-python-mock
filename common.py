@@ -20,10 +20,11 @@ __status__ = "Production"
 
 import random
 import uuid
-from typing import Optional
+from typing import Optional, Tuple
 
 from Crypto.Hash import SHA512
 from Crypto.PublicKey import RSA
+from Crypto.SelfTest.Protocol.test_ecdh import public_key, private_key
 from Crypto.Signature import PKCS1_v1_5
 
 from types_ import SIGN, HASH, KEY
@@ -58,7 +59,8 @@ def make_hash(hash_algorithm:str, *args) -> HASH:
     # Однако в Си коде хеш будем брать от последовательности байт.
     # Поэтому переводим всё в байты
 
-    assert hash_algorithm == "SHA-512............."
+    if hash_algorithm != "SHA-512.............":
+        raise NotImplementedError(f"Не реализована поддержка хеш-алгоритма '{hash_algorithm}'.")
 
 
     bytes_data = b''.join([
@@ -102,3 +104,11 @@ def make_sign(
     sign = signer.sign(hash_object)
 
     return sign
+
+
+def new_key_pears() -> Tuple[KEY, KEY]:
+
+    private_key = ""
+    public_key = ""
+
+    private_key, public_key

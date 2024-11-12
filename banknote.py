@@ -139,3 +139,26 @@ class OdcBanknote:
         if self._header.banknote_id != other._header.banknote_id:
             return False
         return True
+
+
+    @property
+    def bank_id(self):
+        return self._header.bank_id
+
+    @property
+    def banknote_id(self):
+        return self._header.banknote_id
+
+    @property
+    def sign_algorithm(self):
+        return self._header.sign_algorithm
+
+    def hash_algorithm(self):
+        return self._header.hash_algorithm
+
+    @property
+    def last_chain_hash(self):
+        if len(self._chain) == 0:
+            return self._header.hash_
+        else:
+            return self._chain[-1].hash_
