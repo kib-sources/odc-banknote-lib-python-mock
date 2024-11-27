@@ -16,13 +16,17 @@ __version__ = "20241111"
 __status__ = "Develop"
 # __status__ = "Production"
 
+import os
 import json
 import uuid
 from typing import List, Optional
 
 from banknote import OdcBanknote
-from common import make_sign, check_sign, make_salt
+from common import make_sign, check_sign, make_salt, new_key_pears, make_hash
 from banknote_blocks import OdcbBlockHeader
+
+from wallet import SmartCard
+from wallet import _smart_card_path
 
 
 class Bank():
@@ -42,6 +46,10 @@ class Bank():
         self._bok = bok
         self._comment = comment
         self._codes = codes
+
+        # Пока константы и их нельзя изменить
+        self._sign_algorithm = "RSA-4096............"
+        self._hash_algorithm = "SHA-512............."
 
 
     @classmethod
@@ -124,8 +132,8 @@ class Bank():
             amount=amount,
             applicability=first_applicability,
             count_append_applicability_blocks=count_append_applicability_blocks,
-            sign_algorithm="RSA-4096............",
-            hash_algorithm="SHA-512.............",
+            sign_algorithm=self._sign_algorithm,
+            hash_algorithm=self._hash_algorithm,
             salt=make_salt(),
             hash_=bytes(),
             bank_sign=bytes(),
@@ -153,8 +161,45 @@ class Bank():
         return header
 
 
-    def init_smart_card(self):
+    def make_smart_card(self) -> str:
         """
         Инициирование новой смарт-карты
         :return:
+        :path: путь куда сохранить
         """
+
+        # if wid is None:
+        #     print(f"wid = {str(wid)}")
+        #     wid = uuid.uuid4()
+        wid = uuid.uuid4()
+        wid = str(wid)
+
+        path = _smart_card_path(wid)
+        assert path.endswith(".smart_card.json")
+        if os.path.exists(path):
+            print(f"Смарт карта с wid={wid} уже создана!\n\tУдалите '{path}' файл если хотите создать карту повторно")
+
+        spk, sok = new_key_pears()
+
+        hash_ = make_hash(self._hash_algorithm, sok)
+        sok_by_bpk = make_sign(self._sign_algorithm, hash_=hash_, private_key=self._bpk)
+        del hash_
+
+        hash_ = make_hash(self._hash_algorithm, wid, sok)
+        wid_and_sok_by_bpk = make_sign(self._sign_algorithm, hash_=hash_, private_key=self._bpk)
+        del hash_
+
+        card = SmartCard(
+            spk=spk,
+            sok=sok,
+            wid=wid,
+            sok_by_bpk=sok_by_bpk,
+            wid_and_sok_by_bpk=wid_and_sok_by_bpk,
+            sign_algorithm=self._sign_algorithm,
+        )
+        card._serialize(first=True)
+
+        with open(path, "r") as fr:
+            pass
+
+        return wid

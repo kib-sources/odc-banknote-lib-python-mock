@@ -13,6 +13,8 @@ __credits__ = [
 ]
 __version__ = "20241111"
 __status__ = "Develop"
+
+import base64
 # __status__ = "Production"
 
 import json
@@ -53,7 +55,7 @@ class SmartCard:
         wid_and_sok_by_bpk,
         sign_algorithm="RSA-4096............",
     ):
-        self._wid = wid
+        self._wid = str(wid)
         self._spk = spk
         self._sok = sok
         self._sok_by_bpk = sok_by_bpk
@@ -97,32 +99,8 @@ class SmartCard:
         return counter
 
     def sign_hash0(self, hash0):
-        sign0 = make_sign(hash0, self._spk)
+        sign0 = make_sign("RSA-4096............", hash0, self._spk)
         return sign0
-
-
-    @classmethod
-    def make(
-        cls,
-        wid,
-        bpk,
-        sign_algorithm="RSA-4096............",
-    ):
-        wid = str(wid)
-        path = _smart_card_path(wid)
-        if os.path.exists(path):
-            print(f"Смарт карта с wid={wid} уже создана!\n\tУдалите '{path}' файл если хотите создать карту повторно")
-
-        sok, spk = new_key_pears()
-
-        _obj = cls(
-            spk=spk,
-            sok=sok,
-            wid=wid,
-            sign_algorithm=sign_algorithm,
-        )
-        _obj._serialize(first=True)
-
 
 
     def _serialize(self, first=False):
@@ -135,15 +113,15 @@ class SmartCard:
             "wid": self._wid,
             "sok": self._sok,
             "spk": self._spk,
-            "sok_by_bpk": self._sok_by_bpk,
-            "wid_and_sok_by_bpk": self._wid_and_sok_by_bpk,
+            "sok_by_bpk_base64": base64.b64encode(self._sok_by_bpk).decode(),
+            "wid_and_sok_by_bpk_base64": base64.b64encode(self._wid_and_sok_by_bpk).decode(),
             "counter": self._counter,
             "pears": self._banknote_id_counter_pears,
             "_last_serialize": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "_sign_algorithm": self._sign_algorithm
         }
         with open(self._path_sinc, 'w') as fw:
-            fw.write(json.dumps(info))
+            fw.write(json.dumps(info, indent=4))
         return
 
     @property
@@ -179,8 +157,8 @@ class SmartCard:
             assert 'wid' in info
             assert 'sok' in info
             assert 'spk' in info
-            assert "sok_by_bpk" in info
-            assert "wid_and_sok_by_bpk" in info
+            assert "sok_by_bpk_base64" in info
+            assert "wid_and_sok_by_bpk_base64" in info
             assert "_sign_algorithm" in info
 
             assert wid == info['wid']
@@ -188,9 +166,12 @@ class SmartCard:
             counter = info['counter']
             spk = info['spk']
             sok = info['sok']
-            sok_by_bpk = info['sok_by_bpk']
-            wid_and_sok_by_bpk = info['wid_and_sok_by_bpk']
+            sok_by_bpk_base64 = info['sok_by_bpk_base64']
+            wid_and_sok_by_bpk_base64 = info['wid_and_sok_by_bpk_base64']
             _sign_algorithm = info['_sign_algorithm']
+
+            sok_by_bpk = base64.b64decode(sok_by_bpk_base64.encode())
+            wid_and_sok_by_bpk = base64.b64decode(wid_and_sok_by_bpk_base64.encode())
 
             _obj = cls(
                 spk=spk,

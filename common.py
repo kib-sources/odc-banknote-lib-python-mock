@@ -106,8 +106,10 @@ def make_sign(
 
 
 def new_key_pears() -> Tuple[KEY, KEY]:
+    private_key = RSA.generate(4096)
+    public_key = private_key.publickey()
 
-    private_key = ""
-    public_key = ""
+    private_key_str = private_key.exportKey().decode()
+    public_key_str = public_key.exportKey().decode()
 
-    private_key, public_key
+    return private_key_str, public_key_str
