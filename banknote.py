@@ -34,8 +34,6 @@ from types_ import KEY
 from banknote_blocks import OdcbBlockChain, OdcbBlockHeader, OdcbBlockApplicability
 from banknote_blocks import ODCB_FILE_PREFIX, ODCB_FILE_VERSION
 
-from bank import Bank
-
 _odcb_mock_version = "2.0-python-mock"
 
 
@@ -70,38 +68,6 @@ class OdcBanknote:
         self._header = header
         self._chain = chain
 
-    @classmethod
-    def make(
-            cls,
-            *,
-            bank: Bank,
-            code: str,
-            amount: int,
-            banknote_id: Optional[uuid.UUID]=None,
-            applicabilities: Optional[List[str]]=None,
-    ):
-        if applicabilities is None:
-            applicabilities = [
-                "ALL-0000-0000000"
-            ]
-
-        if len(applicabilities) > 1:
-            raise NotImplementedError("Пока не поддерживаем много блоков APPLICABILITIES... :( Укажите один")
-
-        header = bank.init_odcb_block_header(
-            banknote_id=banknote_id,
-            code=code,
-            amount=amount,
-            first_applicability=applicabilities[0],
-            count_append_applicability_blocks=len(applicabilities)-1,
-        )
-
-        _obj = cls(
-            header=header,
-            chain=list()
-        )
-
-        return _obj
 
     @classmethod
     def load(cls, path):

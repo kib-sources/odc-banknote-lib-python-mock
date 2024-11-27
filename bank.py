@@ -20,6 +20,7 @@ import json
 import uuid
 from typing import List, Optional
 
+from banknote import OdcBanknote
 from common import make_sign, check_sign, make_salt
 from banknote_blocks import OdcbBlockHeader
 
@@ -67,6 +68,38 @@ class Bank():
                 comment=comment,
             )
             return _obj
+
+
+    def make_banknote(
+            self,
+            *,
+            code: str,
+            amount: int,
+            banknote_id: Optional[uuid.UUID] = None,
+            applicabilities: Optional[List[str]] = None,
+    ):
+        if applicabilities is None:
+            applicabilities = [
+                "ALL-0000-0000000"
+            ]
+
+        if len(applicabilities) > 1:
+            raise NotImplementedError("Пока не поддерживаем много блоков APPLICABILITIES... :( Укажите один")
+
+        header = self.init_odcb_block_header(
+            banknote_id=banknote_id,
+            code=code,
+            amount=amount,
+            first_applicability=applicabilities[0],
+            count_append_applicability_blocks=len(applicabilities)-1,
+        )
+
+        _obj = OdcBanknote(
+            header=header,
+            chain=list()
+        )
+
+        return _obj
 
 
     def init_odcb_block_header(

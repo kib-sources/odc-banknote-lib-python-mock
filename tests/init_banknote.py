@@ -8,7 +8,7 @@
 
 __author__ = 'pavelmstu'
 __copyright__ = 'KIB, 2024'
-__license__ = 'KIB LLC'
+__license__ = 'LGPL'
 __credits__ = [
     'pavelmstu',
 ]
@@ -28,8 +28,7 @@ def main():
     bank = Bank.load('data/test_bank.bank.json')
 
     print("Создание банкноты")
-    banknote = OdcBanknote.make(
-        bank=bank,
+    banknote = bank.make_banknote(
         code="KIB (000)",
         amount=100,
     )
