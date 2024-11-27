@@ -24,7 +24,6 @@ from typing import Optional, Tuple
 
 from Crypto.Hash import SHA512
 from Crypto.PublicKey import RSA
-from Crypto.SelfTest.Protocol.test_ecdh import public_key, private_key
 from Crypto.Signature import PKCS1_v1_5
 
 from types_ import SIGN, HASH, KEY
