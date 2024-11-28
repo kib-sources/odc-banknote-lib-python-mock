@@ -42,8 +42,10 @@ WID2 =  "fc426146-15a2-48a5-a81c-cf30f2422fb6"
 
 BANKNOTE_PATH = "tests/data/transfer_test.banknote.status_{0}.odcb"
 
-def _banknote_path(status):
+def _banknote_path(status, *, json=False):
     path_ =  BANKNOTE_PATH.format(str(status).zfill(2))
+    if json:
+        path_ += ".json"
     print(f"\tпуть для банкноты:{path_}")
     return path_
 
@@ -99,6 +101,7 @@ def main():
     print(f"\tСоздана банкнота наминалом в {banknote.amount} единиц валюты {banknote.code}.")
     print(f"\tСм.путь: {_banknote_path(status=banknote_status)}")
     banknote.save(_banknote_path(status=banknote_status))
+    banknote.save_json(_banknote_path(status=banknote_status, json=True))
     banknote_status += 1
 
     print("------------------------------------------")
@@ -167,6 +170,7 @@ def main():
     print("\t\tПолучили второй блок (первый после хедера) в банкноте.")
     print(f"\t\tПоместили её по пути: {_banknote_path(status=banknote_status)}")
     banknote.save(_banknote_path(status=banknote_status))
+    banknote.save_json(_banknote_path(status=banknote_status, json=True))
     banknote_status += 1
 
     print("---------------")
@@ -255,6 +259,7 @@ def main():
     print("\t\tПолучили третий блок (второй после хедера) в банкноте.")
     print(f"\t\tПоместили её по пути: {_banknote_path(status=banknote_status)}")
     banknote.save(_banknote_path(status=banknote_status))
+    banknote.save_json(_banknote_path(status=banknote_status, json=True))
     banknote_status += 1
 
     print(f"Можете посмотреть JSON файл Алисы {_smart_card_path(alice.card_wid)}")

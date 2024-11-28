@@ -24,9 +24,11 @@ __status__ = "Develop"
 # __status__ = "Production"
 
 
+import json
 import os
 import uuid
 from dataclasses import dataclass
+from dataclasses import asdict
 from typing import List, Optional
 import dill
 
@@ -86,6 +88,12 @@ class OdcBanknote:
 
             return _obj
 
+    @classmethod
+    def load_json(cls, path):
+        assert path.endswith(".odcb.json")
+        raise NotImplementedError("Функция load_from_json ещё не раписана!")
+
+
     def save(self, path):
         assert path.endswith(".odcb")
         with open(path, "wb") as fw:
@@ -95,6 +103,27 @@ class OdcBanknote:
 
             fw.write(file_data)
 
+    def save_json(self, path):
+        def _fix(v):
+            if isinstance(v, int):
+                return v
+            return str(v)
+
+        assert path.endswith(".odcb.json")
+        with open(path, "w") as fr:
+            info = {
+                "header": {
+                    k: _fix(v) for k, v in asdict(self._header).items()
+                },
+                "chain": [
+                    {
+                        k: _fix(v) for k, v in asdict(v).items()
+                    }
+                    for v in self._chain
+                ]
+            }
+
+            fr.write(json.dumps(info, indent=4))
 
     def __eq__(self, other):
         if not isinstance(other, OdcBanknote):
