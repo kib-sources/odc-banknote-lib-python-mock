@@ -13,11 +13,8 @@ __license__ = 'LGPL'
 __credits__ = [
     'pavelmstu',
 ]
-__version__ = "20241030"
-# __status__ = "Develop"
+__version__ = "20241128"
 __status__ = "Production"
-
-import uuid
 
 HASH = bytes
 
@@ -25,5 +22,4 @@ SIGN = bytes
 
 KEY = str
 
-# WID - wallet id
-WID = uuid.UUID
+UUID_STR = str

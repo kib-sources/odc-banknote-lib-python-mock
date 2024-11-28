@@ -106,6 +106,13 @@ class OdcBanknote:
             return False
         return True
 
+    @property
+    def amount(self):
+        return self._header.amount
+
+    @property
+    def code(self):
+        return self._header.code
 
     @property
     def bank_id(self):
@@ -113,12 +120,14 @@ class OdcBanknote:
 
     @property
     def banknote_id(self):
-        return self._header.banknote_id
+        # UUID -> str
+        return str(self._header.banknote_id)
 
     @property
     def sign_algorithm(self):
         return self._header.sign_algorithm
 
+    @property
     def hash_algorithm(self):
         return self._header.hash_algorithm
 
@@ -128,3 +137,28 @@ class OdcBanknote:
             return self._header.hash_
         else:
             return self._chain[-1].hash_
+
+
+    def validation(self, *, bok=None):
+        """
+        Валидация банкноты
+        :param bok: Если указан bok то валидирует до первого, подписанного банком блока.
+        Если не указан -- валидирует весь блокчейн банкноты
+        :return:
+        True -- банкнота корректна
+        False -- банкнота не корректна
+        """
+        if len(self._chain) == 0:
+            return True
+
+        for i in range(len(self._chain))[::-1]:
+            block = self._chain[i]
+            if not block.hash_validation():
+                return False
+            if bok and block.hash_bank:
+                # Этот блок подписан банком.
+                # Другие блоки можно НЕ смотреть.
+                return block.verify_hash_bank(bok=bok, sign_algorithm=self.sign_algorithm)
+
+        # Мы прошлись по всем банкам и все хеши совпали.
+        return True

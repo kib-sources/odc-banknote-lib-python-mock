@@ -23,7 +23,7 @@ import uuid
 
 from dataclasses import dataclass
 
-from types_ import HASH, SIGN, KEY
+from types_ import HASH, SIGN, KEY, UUID_STR
 
 ODCB_FILE_PREFIX = "ODC banknote........"
 ODCB_FILE_VERSION = "v2-py-mock"
@@ -35,7 +35,7 @@ assert len(ODCB_FILE_VERSION) == 10
 # Далее префикса и версии мы можем НЕ придерживаться ODC v2 протокола *.odbc банкнот.
 # Версия "v2-py-mock" указывает что это замоченная версия.
 
-from common import make_hash
+from common import make_hash, check_sign
 
 
 @dataclass
@@ -91,7 +91,7 @@ class OdcbBlockHeader:
 class OdcbBlockApplicability:
 
     bank_id: str
-    banknote_id: uuid.UUID
+    banknote_id: UUID_STR
 
     parent_hash: HASH
 
@@ -108,11 +108,13 @@ class OdcbBlockApplicability:
 class OdcbBlockChain:
 
     bank_id: str
-    banknote_id: uuid.UUID
+    banknote_id: UUID_STR
 
     parent_hash: HASH
 
-    # sok_owner: KEY -- можно вычислить, расшифровав sok_owner_by_bpk
+    # sok_owner: KEY -- НЕЛЬЗЯ вычислить, расшифровав sok_owner_by_bpk
+    # sok_owner_by_bpk -- это подписанный хеш от sok_owner
+    # верифицируется только в момент передачи на следующий блок
     sok_owner_by_bpk: SIGN
 
     counter: int
@@ -142,6 +144,23 @@ class OdcbBlockChain:
         else:
             return False
 
+    def verify_sok(self, sok, bok, *, sign_algorithm="RSA-4096............", hash_algorithm="SHA-512............."):
+        return check_sign(
+            sign_algorithm,
+            make_hash(hash_algorithm, sok),
+            self.sok_owner_by_bpk,
+            bok
+        )
+
+    def verify_hash0(self, sok, *, sign_algorithm="RSA-4096............"):
+        return check_sign(
+            sign_algorithm,
+            self.hash0,
+            self.hash0_by_spk_owner,
+            sok,
+        )
+
+
 
     def calc_hash(self, hash_algorithm="SHA-512............."):
         return make_hash(
@@ -165,6 +184,13 @@ class OdcbBlockChain:
         else:
             return False
 
+    def verify_hash(self, sok_or_bok, *, sign_algorithm="RSA-4096............"):
+        return check_sign(
+            sign_algorithm,
+            self.hash_,
+            self.hash_by_spk_or_bpk_previous_owner,
+            sok_or_bok,
+        )
 
     # --------------
     # опциональные поля, при online, а не offline передаче
@@ -197,4 +223,21 @@ class OdcbBlockChain:
         else:
             return False
 
+    def verify_hash_bank(self, bok, *, sign_algorithm="RSA-4096............"):
+        return check_sign(
+            sign_algorithm,
+            self.hash_bank,
+            self.hash_bank_by_bpk,
+            bok,
+        )
+
+
+    def hash_validation(self, hash_algorithm="SHA-512............."):
+        if not self.check_hash0(hash_algorithm=hash_algorithm):
+            return False
+        if self.hash_ and not self.check_hash(hash_algorithm=hash_algorithm):
+            return False
+        if self.hash_bank and not self.check_hash_bank(hash_algorithm=hash_algorithm):
+            return False
+        return True
 

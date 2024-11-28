@@ -113,3 +113,46 @@ def new_key_pears() -> Tuple[KEY, KEY]:
     public_key_str = public_key.exportKey().decode()
 
     return private_key_str, public_key_str
+
+
+def check_smart_card_params(
+        wid,
+        sok,
+        sok_by_bpk,
+        wid_and_sok_by_bpk,
+        *,
+        bok,
+        wid_check=None,
+        hash_algorithm="SHA-512.............",
+        sign_algorithm="RSA-4096............",
+) -> bool:
+    """
+    Проверяются параметры
+    :param wid:
+    :param sok:
+    :param sok_by_bpk:
+    :param wid_and_sok_by_bpk:
+    :param bok:
+    :param wid_check: (Опционально)
+    функция по проверке наличия WID в базе данных
+    Возвращает False, если wid-а нет, либо если он не валиден.
+    :param hash_algorithm:
+    :param sign_algorithm:
+    :return:
+    """
+    if wid_check is not None:
+        if not wid_check(wid):
+            return False
+
+    hash_ = make_hash(hash_algorithm, sok)
+    if not check_sign(sign_algorithm, hash_, sok_by_bpk, public_key=bok):
+        return False
+
+    hash_ = make_hash(hash_algorithm, wid, sok)
+    if not check_sign(sign_algorithm, hash_, wid_and_sok_by_bpk, public_key=bok):
+        return False
+
+    return True
+
+
+

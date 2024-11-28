@@ -19,7 +19,7 @@ from bank import Bank
 
 from banknote import OdcBanknote
 
-from wallet import Wallet
+from wallet import ApplicationWallet
 
 
 def init_banknote():
@@ -75,12 +75,12 @@ def main():
 Сейчас вы можете это посмотреть в файлах *.smart_card.json типа.
     """)
 
-    alice = Wallet(
+    alice = ApplicationWallet(
         "Алиса",
         wid1,
     )
 
-    bob = Wallet(
+    bob = ApplicationWallet(
         "Боб",
         wid2,
     )
