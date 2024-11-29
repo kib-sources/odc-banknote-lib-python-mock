@@ -38,6 +38,7 @@ def main():
 
     print(f"Сохрание банкноты по пути {PATH}")
     banknote.save(PATH)
+    banknote.save_json(PATH+".json")
 
     print(f"Загрузка банкноты по пути {PATH}")
     banknote2 = OdcBanknote.load(PATH)
