@@ -36,6 +36,8 @@ from types_ import HASH
 def _smart_card_path(wid):
     return os.path.join(f'tests', 'data', f'{wid}.smart_card.json')
 
+from clib import c_core
+
 class SmartCard:
     """
     Класс, реализующий функционал смарт-карты.
@@ -287,6 +289,10 @@ class ApplicationWallet:
     def smart_card_params(self):
         return self.smart_card.wid, self.smart_card.sok, self.smart_card.sok_by_bpk, self.smart_card.wid_and_sok_by_bpk
 
+    # вместо banknote передаётся
+    #   1) последний блок из которого берётся last_chain_hash
+    #   2) блок заголовка
+    @c_core
     def receive_banknote_step1(self, banknote: OdcBanknote) -> OdcbBlockTransfer:
         """
         Первый шаг. Вызывается получателем.
@@ -324,7 +330,8 @@ class ApplicationWallet:
 
         return next_block
 
-
+    # вместо banknote нужно передать last_block
+    @c_core
     def transfer_banknote(self, sok_new_owner, banknote: OdcBanknote, next_block: OdcbBlockTransfer) -> Tuple[OdcbBlockTransfer, OdcbBlockTransfer]:
         """
         Второй шаг. Вызывается отправителем.
@@ -370,6 +377,10 @@ class ApplicationWallet:
         return last_block, next_block
 
 
+    # banknote не передаётся.
+    # просто происходят проверки корректности заполненности блоков last_block и next_block
+    # функция возвращает True если всё корректно.
+    @c_core
     def receive_banknote_step2(self, banknote: OdcBanknote, last_block: Optional[OdcbBlockTransfer], next_block: OdcbBlockTransfer) -> OdcBanknote:
         """
         Третий шаг. Вызывается получателем.

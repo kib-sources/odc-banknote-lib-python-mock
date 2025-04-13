@@ -37,6 +37,8 @@ assert len(ODCB_FILE_VERSION) == 10
 
 from common import make_hash, check_sign
 
+from clib import c_core
+
 
 @dataclass
 class OdcbBlockHeader:
@@ -129,6 +131,7 @@ class OdcbBlockTransfer:
     hash_: HASH = bytes()
     hash_by_spk_or_bpk_previous_owner: SIGN = bytes()
 
+    @c_core
     def calc_hash0(self, hash_algorithm="SHA-512............."):
         return make_hash(
             hash_algorithm,
@@ -140,12 +143,14 @@ class OdcbBlockTransfer:
             self.salt0,
         )
 
+    @c_core
     def check_hash0(self, hash_algorithm="SHA-512............."):
         if self.hash0 == self.calc_hash0(hash_algorithm=hash_algorithm):
             return True
         else:
             return False
 
+    @c_core
     def verify_sok(self, sok, bok, *, sign_algorithm="RSA-4096............", hash_algorithm="SHA-512............."):
         return check_sign(
             sign_algorithm,
@@ -154,6 +159,7 @@ class OdcbBlockTransfer:
             bok
         )
 
+    @c_core
     def verify_hash0(self, sok, *, sign_algorithm="RSA-4096............"):
         return check_sign(
             sign_algorithm,
@@ -162,8 +168,7 @@ class OdcbBlockTransfer:
             sok,
         )
 
-
-
+    @c_core
     def calc_hash(self, hash_algorithm="SHA-512............."):
         return make_hash(
             hash_algorithm,
@@ -180,12 +185,14 @@ class OdcbBlockTransfer:
             self.salt,
         )
 
+    @c_core
     def check_hash(self,  hash_algorithm="SHA-512............."):
         if self.hash_ == self.calc_hash(hash_algorithm=hash_algorithm):
             return True
         else:
             return False
 
+    @c_core
     def verify_hash(self, sok_or_bok, *, sign_algorithm="RSA-4096............"):
         return check_sign(
             sign_algorithm,
@@ -202,7 +209,7 @@ class OdcbBlockTransfer:
     hash_bank: HASH = bytes()
     hash_bank_by_bpk: SIGN = bytes()
 
-
+    @c_core
     def calc_hash_bank(self, hash_algorithm="SHA-512............."):
         return make_hash(
             hash_algorithm,
@@ -219,12 +226,14 @@ class OdcbBlockTransfer:
             self.salt_bank
         )
 
+    @c_core
     def check_hash_bank(self,  hash_algorithm="SHA-512............."):
         if self.hash_bank == self.calc_hash_bank(hash_algorithm=hash_algorithm):
             return True
         else:
             return False
 
+    @c_core
     def verify_hash_bank(self, bok, *, sign_algorithm="RSA-4096............"):
         return check_sign(
             sign_algorithm,
@@ -233,7 +242,7 @@ class OdcbBlockTransfer:
             bok,
         )
 
-
+    @c_core
     def hash_validation(self, hash_algorithm="SHA-512............."):
         if not self.check_hash0(hash_algorithm=hash_algorithm):
             return False

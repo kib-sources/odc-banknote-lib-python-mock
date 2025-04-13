@@ -31,6 +31,7 @@ from types_ import SIGN, HASH, KEY
 
 # def import_key(str_key: str) -> KEY:
 
+from clib import c_core
 
 
 def to_odcb_bytes(some):
@@ -45,6 +46,7 @@ def to_odcb_bytes(some):
 
     raise NotImplementedError(f"Не реализована функция {to_odcb_bytes.__name__} для типа {type(some)}")
 
+@c_core
 def make_salt():
     # return random.getrandbits(64).to_bytes().hex()
 
@@ -53,6 +55,7 @@ def make_salt():
     return ''.join(random.sample(RANDOM_ALPHABET, 32))
 
 
+@c_core
 def make_hash(hash_algorithm:str, *args) -> HASH:
     # В python всё можно привести к строке и это удобно.
     # Однако в Си коде хеш будем брать от последовательности байт.
@@ -73,6 +76,7 @@ def make_hash(hash_algorithm:str, *args) -> HASH:
     return hash_
 
 
+@c_core
 def check_sign(
     sign_algorithm: str,
     hash_: HASH,
@@ -88,6 +92,7 @@ def check_sign(
     return verified
 
 
+@c_core
 def make_sign(
     sign_algorithm: str,
     hash_: HASH,
@@ -105,6 +110,7 @@ def make_sign(
     return sign
 
 
+@c_core
 def new_key_pears() -> Tuple[KEY, KEY]:
     private_key = RSA.generate(4096)
     public_key = private_key.publickey()

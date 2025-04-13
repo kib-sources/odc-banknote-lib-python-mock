@@ -32,6 +32,7 @@ from wallet import _smart_card_path
 
 from types_ import KEY
 
+from clib import c_core
 
 
 class Bank():
@@ -118,6 +119,8 @@ class Bank():
         return _obj
 
 
+    # В Си вместо self добавить поля из него: _bank_id, _bok, _bpk
+    @c_core
     def init_odcb_block_header(
             self,
             *,
@@ -189,9 +192,15 @@ class Bank():
 
         spk, sok = new_key_pears()
 
-        hash_ = make_hash(self._hash_algorithm, sok)
-        sok_by_bpk = make_sign(self._sign_algorithm, hash_=hash_, private_key=self._bpk)
-        del hash_
+        # в Си добавить поля, требуемы для подписи SOK-а. Это сам sok, _bpk, наименования алгоритмов.
+        @c_core
+        def sign_sok():
+            hash_ = make_hash(self._hash_algorithm, sok)
+            _sok_by_bpk = make_sign(self._sign_algorithm, hash_=hash_, private_key=self._bpk)
+            del hash_
+            return _sok_by_bpk
+
+        sok_by_bpk = sign_sok()
 
         hash_ = make_hash(self._hash_algorithm, wid, sok)
         wid_and_sok_by_bpk = make_sign(self._sign_algorithm, hash_=hash_, private_key=self._bpk)
@@ -213,6 +222,9 @@ class Bank():
         return wid
 
 
+    # в Си не нужно передавать banknote: OdcBanknote, т.к. она только для проверки используется.
+    #       не забыть передать поля из self
+    @c_core
     def transfer_banknote(
             self,
             banknote: OdcBanknote,
