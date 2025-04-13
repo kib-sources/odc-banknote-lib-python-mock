@@ -221,7 +221,7 @@ def main():
     next_block = bob.receive_banknote_step1(banknote)
 
     # Передача Боб -> Алиса
-    print("----------- Боб передаёт next_block Алисе. А так же свои параметры для прооверки")
+    print("----------- Боб передаёт next_block Алисе. А так же свои параметры для проверки")
     next_block = next_block
     widB, sokB, sokB_by_bpk, widB_and_sokB_by_bpk = bob.smart_card_params
     pass
