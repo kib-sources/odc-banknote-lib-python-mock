@@ -103,9 +103,11 @@ class OdcbBlockApplicability:
 
     bank_sign: SIGN = ""
 
+# @dataclass
+# class OdcbBlockChain:
 
 @dataclass
-class OdcbBlockChain:
+class OdcbBlockTransfer:
 
     bank_id: str
     banknote_id: UUID_STR

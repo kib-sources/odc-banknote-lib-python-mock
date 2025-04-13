@@ -33,7 +33,7 @@ from typing import List, Optional
 import dill
 
 from types_ import KEY
-from banknote_blocks import OdcbBlockChain, OdcbBlockHeader, OdcbBlockApplicability
+from banknote_blocks import OdcbBlockTransfer, OdcbBlockHeader, OdcbBlockApplicability
 from banknote_blocks import ODCB_FILE_PREFIX, ODCB_FILE_VERSION
 
 _odcb_mock_version = "2.0-python-mock"
@@ -41,7 +41,7 @@ _odcb_mock_version = "2.0-python-mock"
 
 def lib_version():
     # return "2024.10"
-    return "2024.10-mock"
+    return "2025.04-mock"
 
 def supported_odcb_versions() -> List[str]:
     return [
@@ -63,7 +63,7 @@ class OdcBanknote:
     def __init__(
         self,
         header: OdcbBlockHeader,
-        chain: Optional[List[OdcbBlockChain]] = None,
+        chain: Optional[List[OdcbBlockTransfer]] = None,
     ):
         if chain is None:
             chain = list()

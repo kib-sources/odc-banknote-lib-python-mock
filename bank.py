@@ -23,7 +23,7 @@ from copy import deepcopy
 from typing import List, Optional, Tuple
 
 from banknote import OdcBanknote
-from banknote import OdcbBlockChain
+from banknote import OdcbBlockTransfer
 from common import make_sign, check_sign, make_salt, new_key_pears, make_hash
 from banknote_blocks import OdcbBlockHeader
 
@@ -217,10 +217,10 @@ class Bank():
             self,
             banknote: OdcBanknote,
             *,
-            next_block: OdcbBlockChain,
+            next_block: OdcbBlockTransfer,
             sok: KEY,
 
-    ) -> OdcbBlockChain:
+    ) -> OdcbBlockTransfer:
         """
         Второй шаг. Вызывается отправителем-банком при первичной отправке банкноты.
 

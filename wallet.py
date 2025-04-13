@@ -29,7 +29,7 @@ from types_ import SIGN
 from common import new_key_pears, make_salt, make_sign
 
 from banknote import OdcBanknote
-from banknote_blocks import OdcbBlockChain
+from banknote_blocks import OdcbBlockTransfer
 
 from types_ import HASH
 
@@ -287,7 +287,7 @@ class ApplicationWallet:
     def smart_card_params(self):
         return self.smart_card.wid, self.smart_card.sok, self.smart_card.sok_by_bpk, self.smart_card.wid_and_sok_by_bpk
 
-    def receive_banknote_step1(self, banknote: OdcBanknote) -> OdcbBlockChain:
+    def receive_banknote_step1(self, banknote: OdcBanknote) -> OdcbBlockTransfer:
         """
         Первый шаг. Вызывается получателем.
 
@@ -305,7 +305,7 @@ class ApplicationWallet:
         banknote_id = banknote.banknote_id
         parent_hash = banknote.last_chain_hash
 
-        next_block = OdcbBlockChain(
+        next_block = OdcbBlockTransfer(
             bank_id=bank_id,
             banknote_id=banknote_id,
             parent_hash=parent_hash,
@@ -325,7 +325,7 @@ class ApplicationWallet:
         return next_block
 
 
-    def transfer_banknote(self, sok_new_owner, banknote: OdcBanknote, next_block: OdcbBlockChain) -> Tuple[OdcbBlockChain, OdcbBlockChain]:
+    def transfer_banknote(self, sok_new_owner, banknote: OdcBanknote, next_block: OdcbBlockTransfer) -> Tuple[OdcbBlockTransfer, OdcbBlockTransfer]:
         """
         Второй шаг. Вызывается отправителем.
 
@@ -370,7 +370,7 @@ class ApplicationWallet:
         return last_block, next_block
 
 
-    def receive_banknote_step2(self, banknote: OdcBanknote, last_block: Optional[OdcbBlockChain], next_block: OdcbBlockChain) -> OdcBanknote:
+    def receive_banknote_step2(self, banknote: OdcBanknote, last_block: Optional[OdcbBlockTransfer], next_block: OdcbBlockTransfer) -> OdcBanknote:
         """
         Третий шаг. Вызывается получателем.
 
